@@ -16,13 +16,13 @@ android {
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        multiDexEnabled = true // ✅ Gerekli
+        multiDexEnabled = true
     }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
-        isCoreLibraryDesugaringEnabled = true // ✅ Bu şart
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -31,13 +31,13 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.named("debug").get() // ✅ güvenli DSL uyumlu
         }
     }
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3") // ✅ Bu da şart
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 }
 
 flutter {
