@@ -1,33 +1,68 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'login_screen.dart';
+import 'package:koli_takip/pages/barkod_okuma_sayfasi.dart';
+import 'package:koli_takip/utils/excel_helper.dart';
+import 'dart:io';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  Future<void> _logout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
-  }
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  Map<String, int> barcodeData = {};
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Ana Sayfa"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),
-          )
-        ],
+        title: const Text("Koli Takip Ana Sayfa"),
+        centerTitle: true,
       ),
-      body: const Center(
-        child: Text("Hoş Geldin! Barkod okutmaya hazır."),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                final file = await pickExcelFile();
+                if (file == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Dosya seçilmedi!")),
+                  );
+                  return;
+                }
+
+                final data = await readBarcodeData(file);
+                setState(() {
+                  barcodeData = data;
+                });
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Excel başarıyla yüklendi")),
+                );
+              },
+              child: const Text("📁 Excel Yükle"),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: barcodeData.isNotEmpty
+                  ? () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BarkodOkumaSayfasi(
+                            barcodeData: barcodeData,
+                          ),
+                        ),
+                      );
+                    }
+                  : null,
+              child: const Text("📦 Barkod Okuma Sayfası"),
+            ),
+          ],
+        ),
       ),
     );
   }

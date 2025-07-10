@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import '../utils/session_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -11,25 +10,23 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final AuthService _authService = AuthService();
-  final SessionManager _session = SessionManager();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
-  void _loginUser() async {
-    String username = _usernameController.text.trim();
-    String password = _passwordController.text.trim();
+  Future<void> _login() async {
+    if (_usernameController.text == "admin" &&
+        _passwordController.text == "1234") {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('username', _usernameController.text);
 
-    bool success = await _authService.login(username, password);
-    if (success) {
-      _session.saveUser(username); // kullanıcıyı oturuma kaydet
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Kullanıcı adı veya şifre hatalı!")),
+        const SnackBar(content: Text("Hatalı kullanıcı adı veya şifre")),
       );
     }
   }
@@ -39,24 +36,18 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text("Giriş Yap")),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
-              controller: _usernameController,
-              decoration: const InputDecoration(labelText: "Kullanıcı Adı"),
-            ),
-            const SizedBox(height: 10),
+                controller: _usernameController,
+                decoration: const InputDecoration(labelText: 'Kullanıcı Adı')),
             TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: "Şifre"),
-            ),
+                controller: _passwordController,
+                decoration: const InputDecoration(labelText: 'Şifre'),
+                obscureText: true),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _loginUser,
-              child: const Text("Giriş"),
-            ),
+            ElevatedButton(onPressed: _login, child: const Text("Giriş")),
           ],
         ),
       ),
